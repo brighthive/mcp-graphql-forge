@@ -13,7 +13,14 @@ let logger: Logger;
 
 try {
   const pkg = require('@toolprint/mcp-logger');
-  logger = (pkg.logger ?? pkg.default ?? pkg) as Logger;
+  // Use the stderrLogger which has the proper interface
+  const mcpLogger = pkg.stderrLogger || pkg.default || pkg;
+  if (mcpLogger && typeof mcpLogger.error === 'function') {
+    logger = mcpLogger;
+  } else {
+    // Fallback if the logger doesn't have the expected interface
+    throw new Error('Logger interface not found');
+  }
 } catch {
   logger = {
     info: console.log.bind(console),
